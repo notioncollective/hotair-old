@@ -63,33 +63,17 @@ var g = {
 		this.getLevel(1);
 		this.canvas = $('#hotair');
 		if(this.canvas[0].getContext) {
-			this.clock = setInterval(this.drawCallback, Math.round(1000/this.fps));
+			this.clock = setInterval(this.callDrawLoop, Math.round(1000/this.fps));
 		}
 	},
 	
-	// draw method
-	draw: function(c, self) {
-		// check if level data is loaded
-		if(self.level_loaded) {
-			var o = self.getNextTweet();
-			if(o == false) {
-				self.stop();
-			} else {
-				var html = '<p class="'+o.type+'"><a target="_blank" href="http://twitter.com/'+o.tweet.user.screen_name+'/status/'+o.tweet.id_str+'">@'+o.tweet.user.screen_name+'</a>: '+o.tweet.text+'</p>';
-				$('body').append(html);
-			}
-		} else { // stall
-			console.log("stall");	
-		}
-		
-		var showTweet = function() {
-			
-		}
-	},
-	
-	drawCallback: function() {
+	// draw method, overwritten below
+	draw: function(c, self) {},
+
+	callDrawLoop: function() {
 		var self = g;
 		var c = self.canvas[0].getContext('2d');
+		// c.clearRect(0, 0, self.canvas.width(), self.canvas.height());
 		self.draw(c, self); 
 	},
 	
@@ -142,8 +126,42 @@ var g = {
 	},
 	stop: function() {
 		clearInterval(this.clock);
+	},
+	drawCircle: function(c, x, y, r, clr) {
+		c.fillStyle = clr
+	  c.beginPath();
+	  c.arc(x, y, r, 0, Math.PI*2, true);
+	  c.closePath();
+	  c.fill();
 	}
 }
 
 t.callback = g.levelLoadedCallback;
+
+
+// DRAW LOOP
+// "c" is canvas context
+// "game" references the g object
+g.draw = function(c, game) {
+	// check if level data is loaded
+	if(game.level_loaded) {
+		var o = game.getNextTweet();
+		if(o == false) {
+			game.stop();
+		} else {
+			var html = '<p class="'+o.type+'"><a target="_blank" href="http://twitter.com/'+o.tweet.user.screen_name+'/status/'+o.tweet.id_str+'">@'+o.tweet.user.screen_name+'</a>: '+o.tweet.text+'</p>';
+			$('body').append(html);
+			var x = Math.random()*game.canvas.width();
+			var y = Math.random()*game.canvas.height();
+			color = o.type == 'r' ? "#F31A18" : "#2A24FF";
+			game.drawCircle(c, x, y, 10, color);
+		}
+		
+		
+	} else { // loading
+	}
+
+}
+
+
 g.init();

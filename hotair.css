@@ -10,15 +10,14 @@ canvas#hotair {
 	margin: 0;
 	position: absolute;
 	z-index: -1;
-	top: 0px;
-	left: 0px;
-	height: 100%;
-	width: 100%;
+	width: 800px;
+	height: 600px;
 }
 
 p.r, p.d {
 	margin-left: 1em;
 }
 
-p.r { color: red; }
-p.d { color: blue; }
+p.r { color: #F31A18; }
+p.d { color: #2A24FF; }
+
