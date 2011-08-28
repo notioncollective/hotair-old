@@ -62,6 +62,12 @@ var g = {
 		console.log("init");
 		this.getLevel(1);
 		this.canvas = $('#hotair');
+		
+		// deal with full-size resizing
+		var c = this.canvas[0].getContext('2d');
+		c.canvas.width = window.innerWidth;
+		c.canvas.height = window.innerHeight;
+		
 		if(this.canvas[0].getContext) {
 			this.clock = setInterval(this.callDrawLoop, Math.round(1000/this.fps));
 		}
@@ -73,6 +79,7 @@ var g = {
 	callDrawLoop: function() {
 		var self = g;
 		var c = self.canvas[0].getContext('2d');
+
 		// c.clearRect(0, 0, self.canvas.width(), self.canvas.height());
 		self.draw(c, self); 
 	},
