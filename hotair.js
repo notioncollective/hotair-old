@@ -58,6 +58,14 @@ var g = {
 	canvas: null,
 	clock: null,
 	
+	player: {
+		width: 50,
+		height: 50,
+		color: "#000000"
+	},
+	
+	enemies: [],
+	
 	init: function() {
 		console.log("init");
 		this.getLevel(1);
@@ -122,6 +130,7 @@ var g = {
 			return false;
 		}
 	},
+
 	getLevel: function(l) {
 		this.level_loaded = false;
 		t.get_page(l, this._levelLoaded);
@@ -134,14 +143,22 @@ var g = {
 	stop: function() {
 		clearInterval(this.clock);
 	},
-	drawCircle: function(c, x, y, r, clr) {
-		c.fillStyle = clr
-	  c.beginPath();
-	  c.arc(x, y, r, 0, Math.PI*2, true);
-	  c.closePath();
-	  c.fill();
+
+};
+
+var gfx = {
+	drawCircle: function(context, x, y, radius, color) {
+		context.fillStyle = color;
+	  context.beginPath();
+	  context.arc(x, y, r, 0, Math.PI*2, true);
+	  context.closePath();
+	  context.fill();
+	},
+	drawSquare: function(context, x, y, width, height, color) {
+		context.fillStyle = color;
+		context.fillRect(x, y, width, height);
 	}
-}
+};
 
 t.callback = g.levelLoadedCallback;
 
@@ -156,12 +173,32 @@ g.draw = function(c, game) {
 		if(o == false) {
 			game.stop();
 		} else {
-			var html = '<p class="'+o.type+'"><a target="_blank" href="http://twitter.com/'+o.tweet.user.screen_name+'/status/'+o.tweet.id_str+'">@'+o.tweet.user.screen_name+'</a>: '+o.tweet.text+'</p>';
-			$('body').append(html);
-			var x = Math.random()*game.canvas.width();
-			var y = Math.random()*game.canvas.height();
-			color = o.type == 'r' ? "#F31A18" : "#2A24FF";
-			game.drawCircle(c, x, y, 10, color);
+			// var html = '<p class="'+o.type+'"><a target="_blank" href="http://twitter.com/'+o.tweet.user.screen_name+'/status/'+o.tweet.id_str+'">@'+o.tweet.user.screen_name+'</a>: '+o.tweet.text+'</p>';
+			// $('body').append(html);
+			
+			// set player
+			var playerX = (game.canvas.width()/2) - (game.player.width/2);
+			var playerY = 0 + game.player.height;
+			console.log(playerX, playerY);
+			gfx.drawSquare(c, playerX, playerY, game.player.width, game.player.height, game.player.color);
+			
+			// var x = Math.random()*game.canvas.width();
+			// var y = Math.random()*game.canvas.height();
+			var newColor = o.type == 'r' ? "#F31A18" : "#2A24FF";
+			var newX = Math.random()*game.canvas.width();
+			var newY = game.canvas.height()-10
+			var newEnemyId = game.enemies.length;
+			game.enemies[newEnemyId] = {
+				tweet: o,
+				color: newColor,
+				x: newX,
+				y: newY,
+				r: 10
+			};
+			for(i=0;i<game.enemies.length; i++) {
+				console.log(game.enemies[i]);
+				gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
+			}
 		}
 		
 		
