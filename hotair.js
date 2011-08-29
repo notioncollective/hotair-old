@@ -150,7 +150,7 @@ var gfx = {
 	drawCircle: function(context, x, y, radius, color) {
 		context.fillStyle = color;
 	  context.beginPath();
-	  context.arc(x, y, r, 0, Math.PI*2, true);
+	  context.arc(x, y, radius, 0, Math.PI*2, true);
 	  context.closePath();
 	  context.fill();
 	},
@@ -198,6 +198,7 @@ g.draw = function(c, game) {
 			for(i=0;i<game.enemies.length; i++) {
 				console.log(game.enemies[i]);
 				gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
+				game.enemies[i].y--;
 			}
 		}
 		
