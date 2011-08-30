@@ -1,5 +1,13 @@
-// t is for twitter
-var t = {
+/**
+ * HA (Hot Air) parent namespace for the game
+ */
+var HA = {}
+
+/**
+ * HA.t namespace accesses the twitter API.
+ * IMPORTANT: must set the callback property for it to work correctly.
+ */
+HA.t = {
 	// this callback needs to be set
 	callback: null,
 	user: 'tweetcongress',
@@ -33,8 +41,18 @@ var t = {
 			});
 		}
 	},
-	// Twitter Lists API call
-	// Documentation: https://dev.twitter.com/docs/api/1/get/lists/statuses
+
+	/**
+	 * This method actually calls the Twitter Lists API. It takes a callback method with three parameters: response, configiration object, and a reference to the parent object.
+	 * Twitter API documentation: https://dev.twitter.com/docs/api/1/get/lists/statuses
+	 * @param String u Twitter user that maintains the list
+	 * @param String l Name of the twitter list
+	 * @param Int c Count of tweets requested
+	 * @param Int p Page of tweets to request
+	 * @param String o Object with additional configuraton options
+	 * @param String cb Callback method
+	 */
+	
 	q: function(u,l,c,p,o,cb) {
 			var self = this;
 			var uri='https://api.twitter.com/1/lists/statuses.json?owner_screen_name='+u+'&slug='+l+'&count='+c+'&page='+p+'&callback=?';
@@ -42,8 +60,10 @@ var t = {
 	},
 }
 
-// g is for THE GAME
-var g = {
+/**
+ * HA.g namespace contains all state information, etc. for the game.
+ */
+HA.g = {
 	fps: 12, // frames per second
 	l: 1, // level
 	level_loaded: false,
@@ -85,7 +105,7 @@ var g = {
 	draw: function(c, self) {},
 
 	callDrawLoop: function() {
-		var self = g;
+		var self = HA.g;
 		var c = self.canvas[0].getContext('2d');
 
 		// c.clearRect(0, 0, self.canvas.width(), self.canvas.height());
@@ -133,12 +153,12 @@ var g = {
 
 	getLevel: function(l) {
 		this.level_loaded = false;
-		t.get_page(l, this._levelLoaded);
+		HA.t.get_page(l, this._levelLoaded);
 	},
 	levelLoadedCallback: function(data) {
-		var self = g;
-		g.level_loaded = true;
-		g.data = data;
+		var self = HA.g;
+		HA.g.level_loaded = true;
+		HA.g.data = data;
 	},
 	stop: function() {
 		clearInterval(this.clock);
@@ -146,7 +166,10 @@ var g = {
 
 };
 
-var gfx = {
+/**
+ * HA.gfx contains all the graphic utility methods, etc. Mostly canvas stuff.
+ */
+HA.gfx = {
 	drawCircle: function(context, x, y, radius, color) {
 		context.fillStyle = color;
 	  context.beginPath();
@@ -160,13 +183,12 @@ var gfx = {
 	}
 };
 
-t.callback = g.levelLoadedCallback;
 
 
 // DRAW LOOP
 // "c" is canvas context
 // "game" references the g object
-g.draw = function(c, game) {
+HA.g.draw = function(c, game) {
 	// check if level data is loaded
 	if(game.level_loaded) {
 		var o = game.getNextTweet();
@@ -180,7 +202,7 @@ g.draw = function(c, game) {
 			var playerX = (game.canvas.width()/2) - (game.player.width/2);
 			var playerY = 0 + game.player.height;
 			console.log(playerX, playerY);
-			gfx.drawSquare(c, playerX, playerY, game.player.width, game.player.height, game.player.color);
+			HA.gfx.drawSquare(c, playerX, playerY, game.player.width, game.player.height, game.player.color);
 			
 			// var x = Math.random()*game.canvas.width();
 			// var y = Math.random()*game.canvas.height();
@@ -197,7 +219,7 @@ g.draw = function(c, game) {
 			};
 			for(i=0;i<game.enemies.length; i++) {
 				console.log(game.enemies[i]);
-				gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
+				HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
 				game.enemies[i].y--;
 			}
 		}
@@ -208,5 +230,8 @@ g.draw = function(c, game) {
 
 }
 
+$(document).ready(function(){
+	HA.t.callback = HA.g.levelLoadedCallback;
+	HA.g.init();
+});
 
-g.init();
