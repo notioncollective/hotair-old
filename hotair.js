@@ -201,8 +201,6 @@ g.draw = function(c, game) {
 				game.enemies[i].y--;
 			}
 		}
-		
-		
 	} else { // loading
 	}
 
