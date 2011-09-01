@@ -71,6 +71,8 @@ HA.g = {
 		'republicans':[],
 		'democrats':[]
 	},
+	gWidth: window.innerWidth,
+	gHeight: window.innerHeight,
 	score: 0,
 	add_interval: 200,
 	d_index: 0,
@@ -93,8 +95,13 @@ HA.g = {
 		
 		// deal with full-size resizing
 		var c = this.canvas[0].getContext('2d');
-		c.canvas.width = window.innerWidth;
-		c.canvas.height = window.innerHeight;
+		c.canvas.width = this.gWidth;
+		c.canvas.height = this.gHeight;
+		
+		// handle mouse location
+		// c.canvas.addEventListener('mousedown', this.fire, false);
+		$(document).mousedown(this.fire);
+		$(document).mousemove(this.captureMouse);
 		
 		if(this.canvas[0].getContext) {
 			this.clock = setInterval(this.callDrawLoop, Math.round(1000/this.fps));
@@ -110,6 +117,15 @@ HA.g = {
 
 		// c.clearRect(0, 0, self.canvas.width(), self.canvas.height());
 		self.draw(c, self); 
+	},
+	
+	fire: function(e) {
+		console.log("Fire!");
+	},
+	
+	captureMouse: function(e) {
+		console.log("mouse x: "+e.pageX);
+		console.log("mouse y: "+e.pageY);
 	},
 	
 	getNextTweet: function() {
@@ -171,7 +187,7 @@ HA.g = {
  */
 HA.gfx = {
 	drawCircle: function(context, x, y, radius, color) {
-		context.fillStyle = color;
+	  context.fillStyle = color;
 	  context.beginPath();
 	  context.arc(x, y, radius, 0, Math.PI*2, true);
 	  context.closePath();
@@ -180,6 +196,9 @@ HA.gfx = {
 	drawSquare: function(context, x, y, width, height, color) {
 		context.fillStyle = color;
 		context.fillRect(x, y, width, height);
+	},
+	clearCanvas: function(context) {
+		context.clearRect( 0 , 0 , HA.g.gWidth , HA.g.gHeight );
 	}
 };
 
@@ -189,8 +208,12 @@ HA.gfx = {
 // "c" is canvas context
 // "game" references the g object
 HA.g.draw = function(c, game) {
-	// check if level data is loaded
+	// clear screen
+	HA.gfx.clearCanvas(c);
+	
+	// check if level data is loaded	
 	if(game.level_loaded) {
+		
 		var o = game.getNextTweet();
 		if(o == false) {
 			game.stop();
