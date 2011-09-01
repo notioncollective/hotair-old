@@ -64,7 +64,7 @@ HA.t = {
  * HA.g namespace contains all state information, etc. for the game.
  */
 HA.g = {
-	fps: 12, // frames per second
+	fps: 24, // frames per second
 	l: 1, // level
 	level_loaded: false,
 	data: {  // holds twitter data
@@ -87,6 +87,9 @@ HA.g = {
 	},
 	
 	enemies: [],
+	
+	bullets: [],
+	bulletSize: 2,
 	
 	init: function() {
 		console.log("init");
@@ -120,12 +123,19 @@ HA.g = {
 	},
 	
 	fire: function(e) {
-		console.log("Fire!");
+		console.log("Fire at "+e.pageX+", "+e.pageY+"!");
+		var xDist = -(HA.g.gWidth/2 - e.pageX);
+		HA.g.bullets.push({
+			x: HA.g.gWidth/2,
+			y: HA.g.player.height+HA.g.player.height/2,
+			dx: xDist/50,
+			dy: 2,
+			ay: .2
+		});
 	},
 	
 	captureMouse: function(e) {
-		console.log("mouse x: "+e.pageX);
-		console.log("mouse y: "+e.pageY);
+		
 	},
 	
 	getNextTweet: function() {
@@ -199,6 +209,9 @@ HA.gfx = {
 	},
 	clearCanvas: function(context) {
 		context.clearRect( 0 , 0 , HA.g.gWidth , HA.g.gHeight );
+	},
+	drawPlayer: function(context) {
+		
 	}
 };
 
@@ -208,45 +221,61 @@ HA.gfx = {
 // "c" is canvas context
 // "game" references the g object
 HA.g.draw = function(c, game) {
+	
 	// clear screen
 	HA.gfx.clearCanvas(c);
 	
+	// set player
+	var playerX = (game.canvas.width()/2) - (game.player.width/2);
+	var playerY = 0 + game.player.height;
+	//console.log(playerX, playerY);
+	HA.gfx.drawSquare(c, playerX, playerY, game.player.width, game.player.height, game.player.color);
+	
 	// check if level data is loaded	
 	if(game.level_loaded) {
-		
 		var o = game.getNextTweet();
+		
+		// var html = '<p class="'+o.type+'"><a target="_blank" href="http://twitter.com/'+o.tweet.user.screen_name+'/status/'+o.tweet.id_str+'">@'+o.tweet.user.screen_name+'</a>: '+o.tweet.text+'</p>';
+		// $('body').append(html);
+		
+		
+		// Enemy initialization
 		if(o == false) {
-			game.stop();
+			// game.stop();
 		} else {
-			// var html = '<p class="'+o.type+'"><a target="_blank" href="http://twitter.com/'+o.tweet.user.screen_name+'/status/'+o.tweet.id_str+'">@'+o.tweet.user.screen_name+'</a>: '+o.tweet.text+'</p>';
-			// $('body').append(html);
-			
-			// set player
-			var playerX = (game.canvas.width()/2) - (game.player.width/2);
-			var playerY = 0 + game.player.height;
-			console.log(playerX, playerY);
-			HA.gfx.drawSquare(c, playerX, playerY, game.player.width, game.player.height, game.player.color);
-			
 			// var x = Math.random()*game.canvas.width();
 			// var y = Math.random()*game.canvas.height();
 			var newColor = o.type == 'r' ? "#F31A18" : "#2A24FF";
-			var newX = Math.random()*game.canvas.width();
-			var newY = game.canvas.height()-10
+			var initX = Math.random()*game.canvas.width();
+			var initY = Math.random()*500+game.canvas.height();
 			var newEnemyId = game.enemies.length;
 			game.enemies[newEnemyId] = {
 				tweet: o,
 				color: newColor,
-				x: newX,
-				y: newY,
-				r: 10
+				x: initX,
+				y: initY,
+				r: 10,
+				dy: (Math.random()*game.l)+2
 			};
-			for(i=0;i<game.enemies.length; i++) {
-				console.log(game.enemies[i]);
-				HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
-				game.enemies[i].y--;
-			}
 		}
+		
+		// Enemy animation
+		for(i=0;i<game.enemies.length; i++) {
+			//console.log(game.enemies[i]);
+			HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
+			game.enemies[i].y -= game.enemies[i].dy;
+		}
+		
+		// Projectile animation
+		for(i=0;i<game.bullets.length; i++) {
+			HA.gfx.drawCircle(c, game.bullets[i].x, game.bullets[i].y, game.bulletSize, "#000000");
+			game.bullets[i].y += game.bullets[i].dy;
+			game.bullets[i].x += game.bullets[i].dx;
+			game.bullets[i].dy += game.bullets[i].ay;
+		}
+	
 	} else { // loading
+		
 	}
 
 }

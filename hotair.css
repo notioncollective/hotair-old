@@ -2,6 +2,7 @@ html, body {
 	width: 100%;
 	height: 100%;
 	margin: 0;
+	overflow: hidden;
 }
 body {
 	margin: 0;
@@ -14,6 +15,8 @@ h1 {
 canvas#hotair {
 	margin: 0;
 	position: absolute;
+	left: 0px;
+	top: 0px;
 	z-index: -1;
 }
 
