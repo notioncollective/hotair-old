@@ -282,7 +282,11 @@ HA.g.draw = function(c, game) {
 				var yDist = game.enemies[i].y - game.bullets[j].y;
 				var dist = Math.sqrt((xDist*xDist)+(yDist*yDist));
 				if(dist < 20) {
+					console.log('hit!');
 					game.enemies[i].y = -20;
+					var html = '<p class="'+game.enemies[i].tweet.tweet.type+'"><a target="_blank" href="http://twitter.com/'+game.enemies[i].tweet.tweet.user.screen_name+'/status/'+game.enemies[i].tweet.tweet.id_str+'">@'+game.enemies[i].tweet.tweet.user.screen_name+'</a>: '+game.enemies[i].tweet.tweet.text+'</p>';
+					$('body').append(html);
+					
 				}
 			}
 		}
