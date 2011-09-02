@@ -89,7 +89,7 @@ HA.g = {
 	enemies: [],
 	
 	bullets: [],
-	bulletSize: 2,
+	bulletSize: 3,
 	
 	init: function() {
 		console.log("init");
@@ -104,7 +104,7 @@ HA.g = {
 		// handle mouse location
 		// c.canvas.addEventListener('mousedown', this.fire, false);
 		$(document).mousedown(this.fire);
-		$(document).mousemove(this.captureMouse);
+		//$(document).mousemove(this.captureMouse);
 		
 		if(this.canvas[0].getContext) {
 			this.clock = setInterval(this.callDrawLoop, Math.round(1000/this.fps));
@@ -125,12 +125,13 @@ HA.g = {
 	fire: function(e) {
 		console.log("Fire at "+e.pageX+", "+e.pageY+"!");
 		var xDist = -(HA.g.gWidth/2 - e.pageX);
+		var yDist = (HA.g.player.height+HA.g.player.height/2) - e.pageY;
 		HA.g.bullets.push({
 			x: HA.g.gWidth/2,
 			y: HA.g.player.height+HA.g.player.height/2,
-			dx: xDist/50,
-			dy: 2,
-			ay: .2
+			dx: xDist/30,
+			dy: 1,
+			ay: .5
 		});
 	},
 	
@@ -247,7 +248,7 @@ HA.g.draw = function(c, game) {
 			// var y = Math.random()*game.canvas.height();
 			var newColor = o.type == 'r' ? "#F31A18" : "#2A24FF";
 			var initX = Math.random()*game.canvas.width();
-			var initY = Math.random()*500+game.canvas.height();
+			var initY = Math.random()*1000+game.canvas.height();
 			var newEnemyId = game.enemies.length;
 			game.enemies[newEnemyId] = {
 				tweet: o,
@@ -255,7 +256,7 @@ HA.g.draw = function(c, game) {
 				x: initX,
 				y: initY,
 				r: 10,
-				dy: (Math.random()*game.l)+2
+				dy: (Math.random()*game.l)+.2
 			};
 		}
 		
@@ -272,6 +273,18 @@ HA.g.draw = function(c, game) {
 			game.bullets[i].y += game.bullets[i].dy;
 			game.bullets[i].x += game.bullets[i].dx;
 			game.bullets[i].dy += game.bullets[i].ay;
+		}
+		
+		// Hit detection
+		for(i=0;i<game.enemies.length; i++) {
+			for(j=0;j<game.bullets.length; j++) {
+				var xDist = game.enemies[i].x - game.bullets[j].x;
+				var yDist = game.enemies[i].y - game.bullets[j].y;
+				var dist = Math.sqrt((xDist*xDist)+(yDist*yDist));
+				if(dist < 20) {
+					game.enemies[i].y = -20;
+				}
+			}
 		}
 	
 	} else { // loading
