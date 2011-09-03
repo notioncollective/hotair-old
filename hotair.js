@@ -69,7 +69,11 @@ HA.dom = {
 	
 	updateScore: function(n) {
 		this.sb.html(n);
-	},	
+	},
+	
+	showTweet: function(tweet, x, y) {
+		// TODO: shows tweet next to enemy
+	}
 }
 
 /**
@@ -90,6 +94,9 @@ HA.g = {
 	d_index: 0,
 	r_index: 0,
 	canvas: null,
+	
+	mouseX: 0,
+	mouseY: 0,
 	
 	player: {
 		width: 50,
@@ -160,7 +167,8 @@ HA.g = {
 	},
 	
 	captureMouse: function(e) {
-		
+		HA.g.mouseX = e.pageX;
+		HA.g.mouseY = e.pageY;
 	},
 	
 	getNextTweet: function() {
@@ -170,29 +178,29 @@ HA.g = {
 			var type = null;
 			// check if dems are done
 			if(this.d_index == this.data.democrats.length-1) {
-				console.log("no more dems");
+				// console.log("no more dems");
 				this.r_index++;
 				type = 'r';
 				tweet = this.data.republicans[this.r_index];
 			// check if repubs are done
 			} else if (this.r_index == this.data['republicans'].length-1) {
-				console.log("no more repubs");
+				// console.log("no more repubs");
 				this.d_index++;
 				type = 'd';
 				tweet = this.data.democrats[this.d_index];			
 			// otherwise, randomize	
 			} else if (Math.random()<.5) {
-				console.log("heads, republican!")
+				// console.log("heads, republican!")
 				this.r_index++;
 				type = 'r';
 				tweet = this.data.republicans[this.r_index];
 			} else {
-				console.log("tails, democrat!")
+				// console.log("tails, democrat!")
 				this.d_index++;
 				type = 'd';
 				tweet = this.data.democrats[this.d_index];
 			}
-			console.log(type);
+			// console.log(type);
 			return {
 				'tweet':tweet,
 				'type':type
@@ -218,7 +226,7 @@ HA.g = {
 		// handle mouse location
 		// c.canvas.addEventListener('mousedown', this.fire, false);
 		$(document).mousedown(this.fire);
-		//$(document).mousemove(this.captureMouse);
+		$(document).mousemove(this.captureMouse);
 		
 		// will handle keypresses
 		$(document).keypress(function(e) {
@@ -331,7 +339,7 @@ HA.g.draw = function(c, game) {
 				color: newColor,
 				x: initX,
 				y: initY,
-				r: 10,
+				r: 50,
 				dy: (Math.random()*game.l)+.2,
 				team: o.type,
 			};
@@ -352,15 +360,25 @@ HA.g.draw = function(c, game) {
 			game.bullets[i].dy += game.bullets[i].ay;
 		}
 		
-		// Hit detection
+		// Hit detection & mouse overlap detection
 		for(i=0;i<game.enemies.length; i++) {
+			
+			var xMDist = game.enemies[i].x - game.mouseX;
+			var yMDist = game.enemies[i].y - game.mouseY;
+			// console.log(xMDist);
+			var mouseDist = Math.sqrt((xMDist*xMDist)+(yMDist*yMDist));
+			if(mouseDist < 50) {
+				// console.log("overlap!");
+				HA.gfx.drawCircle(c, game.mouseX, game.mouseY, 20, "#000000");
+			}
+						
 			for(j=0;j<game.bullets.length; j++) {
 				var xDist = game.enemies[i].x - game.bullets[j].x;
 				var yDist = game.enemies[i].y - game.bullets[j].y;
 				var dist = Math.sqrt((xDist*xDist)+(yDist*yDist));
-				if(dist < 20) {
+				if(dist < 50) {
 					console.log('hit!');
-					game.enemies[i].y = -20;
+					game.enemies[i].y = -50;
 					var html = '<p class="'+game.enemies[i].tweet.tweet.type+'"><a target="_blank" href="http://twitter.com/'+game.enemies[i].tweet.tweet.user.screen_name+'/status/'+game.enemies[i].tweet.tweet.id_str+'">@'+game.enemies[i].tweet.tweet.user.screen_name+'</a>: '+game.enemies[i].tweet.tweet.text+'</p>';
 					$('body').append(html);
 					if(game.player.team != game.enemies[i].team) {
