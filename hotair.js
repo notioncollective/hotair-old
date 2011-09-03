@@ -61,6 +61,18 @@ HA.t = {
 }
 
 /**
+ * HA.dom deals with DOM stuff
+ */
+HA.dom = {
+	ss: $('#startscreen'),
+	sb: $('#scoreboard'),
+	
+	updateScore: function(n) {
+		this.sb.html(n);
+	},	
+}
+
+/**
  * HA.g namespace contains all state information, etc. for the game.
  */
 HA.g = {
@@ -78,18 +90,24 @@ HA.g = {
 	d_index: 0,
 	r_index: 0,
 	canvas: null,
-	clock: null,
 	
 	player: {
 		width: 50,
 		height: 50,
-		color: "#000000"
+		color: "#000000",
+		team: null, // set to either 'r' or 'd'
+		score: 0
 	},
 	
 	enemies: [],
 	
 	bullets: [],
 	bulletSize: 3,
+
+	// timing, etc.
+	clock: null,
+	isPaused: false,
+
 	
 	init: function() {
 		console.log("init");
@@ -101,14 +119,20 @@ HA.g = {
 		c.canvas.width = this.gWidth;
 		c.canvas.height = this.gHeight;
 		
-		// handle mouse location
-		// c.canvas.addEventListener('mousedown', this.fire, false);
-		$(document).mousedown(this.fire);
-		//$(document).mousemove(this.captureMouse);
-		
-		if(this.canvas[0].getContext) {
-			this.clock = setInterval(this.callDrawLoop, Math.round(1000/this.fps));
-		}
+		// this.start();
+		$('#play_republican').click(function(e){
+			e.preventDefault();
+			HA.g.player.team = 'r';
+			HA.dom.ss.hide();
+			HA.g.start();
+		});
+		// this.start();
+		$('#play_democrat').click(function(e){
+			e.preventDefault();
+			HA.g.player.team = 'd';
+			HA.dom.ss.hide();
+			HA.g.start();
+		});
 	},
 	
 	// draw method, overwritten below
@@ -187,9 +211,53 @@ HA.g = {
 		HA.g.level_loaded = true;
 		HA.g.data = data;
 	},
+	
+	// start new game
+	start: function() {
+		console.log("Start new game");
+		// handle mouse location
+		// c.canvas.addEventListener('mousedown', this.fire, false);
+		$(document).mousedown(this.fire);
+		//$(document).mousemove(this.captureMouse);
+		
+		// will handle keypresses
+		$(document).keypress(function(e) {
+			console.log(this);
+			switch(e.which) {
+				
+				// SPACE BAR
+				case 32:
+					if(HA.g.isPaused) {
+						HA.g.play();
+						// TODO: hide pause screen
+					} else {
+						HA.g.pause();
+						// TODO: show pause screen
+					}
+					break;
+			}
+		});
+		
+		
+		if(this.canvas[0].getContext) {
+			this.play();
+		}
+	},
+	// stop game
 	stop: function() {
 		clearInterval(this.clock);
+		// TODO: reset game, show start screen again
 	},
+	// pause game
+	pause: function() {
+		this.isPaused = true;
+		clearInterval(this.clock);
+	},
+	// unpause game
+	play: function() {
+		this.isPaused = false;
+		this.clock = setInterval(this.callDrawLoop, Math.round(1000/this.fps));
+	}
 
 };
 
@@ -230,6 +298,14 @@ HA.g.draw = function(c, game) {
 	var playerX = (game.canvas.width()/2) - (game.player.width/2);
 	var playerY = 0 + game.player.height;
 	//console.log(playerX, playerY);
+	switch(game.player.team) {
+		case 'r':
+			game.player.color = "#F31A18";
+			break;
+		case 'd':
+			game.player.color = "#2A24FF";
+			break;
+	}
 	HA.gfx.drawSquare(c, playerX, playerY, game.player.width, game.player.height, game.player.color);
 	
 	// check if level data is loaded	
@@ -256,7 +332,8 @@ HA.g.draw = function(c, game) {
 				x: initX,
 				y: initY,
 				r: 10,
-				dy: (Math.random()*game.l)+.2
+				dy: (Math.random()*game.l)+.2,
+				team: o.type,
 			};
 		}
 		
@@ -286,6 +363,13 @@ HA.g.draw = function(c, game) {
 					game.enemies[i].y = -20;
 					var html = '<p class="'+game.enemies[i].tweet.tweet.type+'"><a target="_blank" href="http://twitter.com/'+game.enemies[i].tweet.tweet.user.screen_name+'/status/'+game.enemies[i].tweet.tweet.id_str+'">@'+game.enemies[i].tweet.tweet.user.screen_name+'</a>: '+game.enemies[i].tweet.tweet.text+'</p>';
 					$('body').append(html);
+					if(game.player.team != game.enemies[i].team) {
+						game.player.score++
+						HA.dom.updateScore(game.player.score);
+					} else {
+						game.player.score--
+						HA.dom.updateScore(game.player.score);
+					}
 					game.bullets.splice(j, 1);
 				}
 			}

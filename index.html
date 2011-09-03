@@ -4,12 +4,23 @@
 	<meta charset="utf-8">
 	<title>Hot Air</title>
 	<meta name="author" content="The Notion Collective, Jon Wohl, Andy Dayton">
-	<!-- <script type="text/javascript" src="http://use.typekit.com/zkb8dhi.js"></script> -->
-	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+	<!-- <script type="text/javascript" src="http://use.typekit.com/zkb8dhi.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script> -->
 	<link rel="stylesheet" href="hotair.css" type="text/css" media="screen" title="no title" charset="utf-8">
 </head>
 <body>
-	<h1>Hot Air</h1>
+	<div id="startscreen">
+		<h1>Hot Air</h1>
+		<h2>How to play</h2>
+		<p>Hover over a balloon to see its message, click to fire ammo. Spacebar pauses play. Have fun!</p>
+		<h2>Instructions</h2>
+		<p>Please select a team:</p>
+		<ul id="selectteam">
+			<li><a href="#" class="button" id="play_republican">Republicans</a></li>
+			<li><a href="#" class="button" id="play_democrat">Democrats</a></li>
+		</ul>
+	</div>
+	<div id="scoreboard">0</div>
 	<canvas id="hotair"></canvas>
 	<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.6.2.min.js" type="text/javascript" charset="utf-8"></script>
 	<script src="hotair.js" type="text/javascript" charset="utf-8"></script>
