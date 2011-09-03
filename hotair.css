@@ -7,10 +7,19 @@ html, body {
 body {
 	margin: 0;
 	padding: 0;
-	font-family: hydrophilia-iced;
+	font-family: hydrophilia-iced, courier;
 }
-h1 { 
-	margin-left: 1em;
+h1, #l, #t, #i, #ibtn { 
+	margin-left: 2%;
+}
+
+#h {
+	position: absolute;
+	left: 50%;
+	top: 30%;
+	margin-left: -100px;
+	width: 200px;
+	text-align:center;
 }
 canvas#hotair {
 	margin: 0;
@@ -18,11 +27,35 @@ canvas#hotair {
 	left: 0px;
 	top: 0px;
 	z-index: -1;
+	background: #B8DCFD;
+}
+
+#l {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin-left: -100px;
+	width: 200px;
+	font-size: 2.5em;
+	text-align: center;
 }
 
 #i {
-	display:none;
 	width: 300px;
+}
+
+#t {
+	display: none;
+	font-size: .8em;
+	position: absolute;
+	width: 300px;
+}
+
+#sb {
+	display: none;
+	position: absolute;
+	top: 30px;
+	right: 30px;
 }
 p.r, p.d {
 	margin-left: 1em;
