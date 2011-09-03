@@ -13,7 +13,7 @@ HA.t = {
 	user: 'tweetcongress',
 	r_list: 'republican',
 	d_list: 'democrats',
-	count: 20,
+	count: 10,
 	page: 0,
 	r: [],
 	d: [],
@@ -112,6 +112,7 @@ HA.g = {
 		// game start options
 		$("#ibtn").click(function(e) {
 			HA.g.i.slideToggle();
+			return false;
 		});
 		$("#cR").click(function(e) {
 			HA.g.team = "r";
@@ -148,8 +149,10 @@ HA.g = {
 		$(document).mousemove(this.captureMouse);
 		
 		// set animation
+		this.addEnemy();
 		if(this.canvas[0].getContext) {
 			this.clock = setInterval(this.callDrawLoop, Math.round(1000/this.fps));
+			this.eFactory = setInterval(this.addEnemy, 4000);
 		}
 	},
 	
@@ -199,7 +202,7 @@ HA.g = {
 			}
 			HA.g.enemies[i].selected = false;
 		}
-		if(closestD < 100) {
+		if(closestD < 200) {
 			HA.g.t.text(closestE.tweet.tweet.text);
 			closestE.selected = true;
 		} else {
@@ -208,7 +211,28 @@ HA.g = {
 	},
 
 	addEnemy: function() {
+		var o = HA.g.getNextTweet();
+		// Enemy initialization - should be added incrementally, based on a setInterval
 		
+		if(o == false) {
+			// game.stop();
+		} else {
+			// var x = Math.random()*game.canvas.width();
+			// var y = Math.random()*game.canvas.height();
+			// var newColor = o.type == 'r' ? "#F31A18" : "#2A24FF";
+			var newColor = "#00aa00";
+			var initX = ((Math.random()-Math.random())*HA.g.canvas.width()/3)+HA.g.canvas.width()/2;
+			var initY = HA.g.canvas.height()+20;
+			var newEnemyId = HA.g.enemies.length;
+			HA.g.enemies[newEnemyId] = {
+				tweet: o,
+				color: newColor,
+				x: initX,
+				y: initY,
+				r: 10,
+				dy: HA.g.l
+			};
+		}
 	},
 	
 	getNextTweet: function() {
@@ -285,6 +309,34 @@ HA.gfx = {
 	},
 	drawPlayer: function(context) {
 		
+	},
+	drawScope: function(context, x, y, width, height, color) {
+		HA.gfx.drawSquare(context, x, y, width, height, color);
+		context.strokeStyle = "#000";
+		context.lineJoin = "round";
+		context.lineWidth = 1;
+		context.beginPath();
+		context.moveTo(x-width/2, y-height/2);
+		context.lineTo(x+width/2, y-height/2);
+		context.lineTo(x+width/2, y+height/2);
+		context.lineTo(x-width/2, y+height/2);
+		context.lineTo(x-width/2, y-height/2);
+		
+		context.moveTo(x-10, y);
+		context.lineTo(x+10, y);
+		context.moveTo(x, y-10);
+		context.lineTo(x, y+10);
+		
+		context.moveTo(x, y-height/2);
+		context.lineTo(x, y-height/2+10);
+		context.moveTo(x+width/2, y);
+		context.lineTo(x+width/2-10, y);
+		context.moveTo(x, y+height/2);
+		context.lineTo(x, y+height/2-10);
+		context.moveTo(x-width/2, y);
+		context.lineTo(x-width/2+10, y);
+		//context.endPath();
+		context.stroke();
 	}
 };
 
@@ -306,39 +358,13 @@ HA.g.draw = function(c, game) {
 	
 	// check if level data is loaded	
 	if(game.level_loaded) {
-		var o = game.getNextTweet();
-		
-		// var html = '<p class="'+o.type+'"><a target="_blank" href="http://twitter.com/'+o.tweet.user.screen_name+'/status/'+o.tweet.id_str+'">@'+o.tweet.user.screen_name+'</a>: '+o.tweet.text+'</p>';
-		// $('body').append(html);
-		
-		
-		// Enemy initialization - should be added incrementally, based on a setInterval
-		
-		if(o == false) {
-			// game.stop();
-		} else {
-			// var x = Math.random()*game.canvas.width();
-			// var y = Math.random()*game.canvas.height();
-			var newColor = o.type == 'r' ? "#F31A18" : "#2A24FF";
-			var initX = ((Math.random()-Math.random())*game.canvas.width()/3)+game.canvas.width()/2;
-			var initY = Math.random()*1000+game.canvas.height();
-			var newEnemyId = game.enemies.length;
-			game.enemies[newEnemyId] = {
-				tweet: o,
-				color: newColor,
-				x: initX,
-				y: initY,
-				r: 10,
-				dy: (Math.random()*game.l)+.2
-			};
-		}
 		
 		// Enemy animation
 		for(i=0;i<game.enemies.length; i++) {
 			//console.log(game.enemies[i]);
 			game.enemies[i].y -= game.enemies[i].dy;
 			if(game.enemies[i].selected) {
-				HA.gfx.drawSquare(c, game.enemies[i].x, game.enemies[i].y, 100, 100, "#eeeeee");
+				HA.gfx.drawScope(c, game.enemies[i].x, game.enemies[i].y, 100, 100, "rgba(220, 230, 220, 0.5)");
 			}
 			HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
 		}
@@ -359,7 +385,7 @@ HA.g.draw = function(c, game) {
 				var xDist = game.enemies[i].x - game.bullets[j].x;
 				var yDist = game.enemies[i].y - game.bullets[j].y;
 				var dist = Math.sqrt((xDist*xDist)+(yDist*yDist));
-				if(dist < 50) {
+				if(dist < 50 && game.enemies[i].y < game.gHeight) {
 					console.log('hit!');
 					game.enemies[i].y = -100;
 					if(game.enemies[i].tweet.type == game.team) {
