@@ -20,6 +20,10 @@ canvas#hotair {
 	z-index: -1;
 }
 
+#i {
+	display:none;
+	width: 300px;
+}
 p.r, p.d {
 	margin-left: 1em;
 }
