@@ -350,6 +350,9 @@ HA.g.draw = function(c, game) {
 			//console.log(game.enemies[i]);
 			HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
 			game.enemies[i].y -= game.enemies[i].dy;
+			if(game.enemies[i].y < -50) {
+				game.enemies.splice(i, 1);
+			}
 		}
 		
 		// Projectile animation
@@ -378,7 +381,8 @@ HA.g.draw = function(c, game) {
 				var dist = Math.sqrt((xDist*xDist)+(yDist*yDist));
 				if(dist < 50) {
 					console.log('hit!');
-					game.enemies[i].y = -50;
+					//game.enemies[i].y = -50;
+					game.enemies.splice(i, 1);
 					var html = '<p class="'+game.enemies[i].tweet.tweet.type+'"><a target="_blank" href="http://twitter.com/'+game.enemies[i].tweet.tweet.user.screen_name+'/status/'+game.enemies[i].tweet.tweet.id_str+'">@'+game.enemies[i].tweet.tweet.user.screen_name+'</a>: '+game.enemies[i].tweet.tweet.text+'</p>';
 					$('body').append(html);
 					if(game.player.team != game.enemies[i].team) {
