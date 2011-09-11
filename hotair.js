@@ -348,6 +348,8 @@ HA.g = {
  * HA.gfx contains all the graphic utility methods, etc. Mostly canvas stuff.
  */
 HA.gfx = {
+	// this is the amount to scale gif images
+	gifScale: 8,
 	drawCircle: function(context, x, y, radius, color) {
 	  context.fillStyle = color;
 	  context.beginPath();
@@ -433,19 +435,22 @@ HA.g.draw = function(c, game) {
 			game.enemies[i].img.src = 'img/balloon.gif';
 			game.enemies[i].img.onload = function() { console.log("Ballon img loaded"); };
 			
-			// putting the center of the img at 1/3 from toop and centered horizontally
-			var imgw, imgh, imgx, imgy, imgscale;
-			imgw = 20;
-			imgh =	26;
+			// GIF IMAGE BALLOON
+			// getting the image centered
+			var imgw, imgh, imgx, imgy;
+			// var imgw, imgh, imgx, imgy, imgscale;
+			// imgscale = 8;
+			imgw = 20*HA.gfx.gifScale;
+			imgh =	26*HA.gfx.gifScale;
 			imgx = game.enemies[i].x - (imgw / 2);
-			imgy = game.enemies[i].y - (imgh / 3);
-			imgscale = 8;
-			c.drawImage(game.enemies[i].img, imgx, imgy, imgw*imgscale, imgh*imgscale);
+			imgy = game.enemies[i].y - (imgh / 2);
 			
-			// HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
+			c.drawImage(game.enemies[i].img, imgx, imgy, imgw, imgh);
+			
+			 // HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.nemies[i].r, game.enemies[i].color);
 			if(game.enemies[i].selected) {
-				HA.gfx.drawScope(c, imgx, imgy, 200, 200, "rgba(220, 230, 220, 0.5)");
-				$("#t").offset({ top: imgy-100, left: imgx-110}).fadeIn(500);
+				HA.gfx.drawScope(c, game.enemies[i].x, game.enemies[i].y, imgw+10, imgh+10, "rgba(220, 230, 220, 0.5)");
+				$("#t").offset({ top: imgy, left: imgx+imgw+15}).fadeIn(500);
 			} else {
 			}
 			
@@ -467,7 +472,8 @@ HA.g.draw = function(c, game) {
 				var xDist = game.enemies[i].x - game.bullets[j].x;
 				var yDist = game.enemies[i].y - game.bullets[j].y;
 				var dist = Math.sqrt((xDist*xDist)+(yDist*yDist));
-				if(dist < 50 && game.enemies[i].y < game.gHeight) {
+				// TODO: improve hit detection
+				if(dist < (game.enemies[i].img.width*HA.gfx.gifScale)/2 && game.enemies[i].y < game.gHeight) {
 					console.log('hit!');
 					if(game.enemies[i].team == game.player.team) {
 						game.player.score--;
