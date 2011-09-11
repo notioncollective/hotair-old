@@ -118,6 +118,7 @@ HA.g = {
 		console.log("init");
 		this.getLevel(1);
 		this.canvas = $('#hotair'); // container for game animation
+		this.canvas[0].mozImageSmoothingEnabled=false; // turn off anti-aliasing in ff
 		this.i = $("#i"); // container for instructions
 		this.h = $("#h"); // container for home screen
 		this.ld = $("#l"); // container for level flash
@@ -316,7 +317,7 @@ HA.g = {
 
 	getLevel: function(l) {
 		this.level_loaded = false;
-		HA.t.get_page(l, this._levelLoaded);
+		HA.t.get_page(l);
 	},
 	levelLoadedCallback: function(data) {
 		var self = HA.g;
@@ -404,6 +405,7 @@ HA.g.draw = function(c, game) {
 	
 	// clear screen
 	HA.gfx.clearCanvas(c);
+		
 	
 	// set player
 	var playerX = (game.canvas.width()/2);
@@ -422,16 +424,28 @@ HA.g.draw = function(c, game) {
 	// check if level data is loaded	
 	if(game.level_loaded) {
 		
-		
 		// Enemies loaded via separate timed loop
 		// Enemy animation
 		for(i=0;i<game.enemies.length; i++) {
 			//console.log(game.enemies[i]);
 			game.enemies[i].y -= game.enemies[i].dy;
-			HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
+			game.enemies[i].img = new Image();
+			game.enemies[i].img.src = 'img/balloon.gif';
+			game.enemies[i].img.onload = function() { console.log("Ballon img loaded"); };
+			
+			// putting the center of the img at 1/3 from toop and centered horizontally
+			var imgw, imgh, imgx, imgy, imgscale;
+			imgw = 20;
+			imgh =	26;
+			imgx = game.enemies[i].x - (imgw / 2);
+			imgy = game.enemies[i].y - (imgh / 3);
+			imgscale = 8;
+			c.drawImage(game.enemies[i].img, imgx, imgy, imgw*imgscale, imgh*imgscale);
+			
+			// HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.enemies[i].r, game.enemies[i].color);
 			if(game.enemies[i].selected) {
-				HA.gfx.drawScope(c, game.enemies[i].x, game.enemies[i].y, 200, 200, "rgba(220, 230, 220, 0.5)");
-				$("#t").offset({ top: game.enemies[i].y-100, left: game.enemies[i].x+110}).fadeIn(500);
+				HA.gfx.drawScope(c, imgx, imgy, 200, 200, "rgba(220, 230, 220, 0.5)");
+				$("#t").offset({ top: imgy-100, left: imgx-110}).fadeIn(500);
 			} else {
 			}
 			
@@ -447,7 +461,7 @@ HA.g.draw = function(c, game) {
 		
 		// Hit detection
 		for(i=0;i<game.enemies.length; i++) {
-			
+			var hit = false;
 			// projectiles
 			for(j=0;j<game.bullets.length; j++) {
 				var xDist = game.enemies[i].x - game.bullets[j].x;
@@ -462,14 +476,17 @@ HA.g.draw = function(c, game) {
 						game.player.score++;
 						HA.dom.updateScore(game.player.score);
 					}
-					game.enemies.splice(i, 1);
+					hit = true;
 					game.bullets.splice(j, 1);
 				}
+			}
+			if(hit) {
+				game.enemies.splice(i, 1);				
 			}
 		}
 		
 		// update score
-		game.s.html("<h4>score: "+game.score+"</h4>");
+		game.sb.html("<h4>score: "+game.score+"</h4>");
 	
 	} else { // loading
 		
