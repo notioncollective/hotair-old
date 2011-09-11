@@ -433,7 +433,7 @@ HA.g.draw = function(c, game) {
 			game.enemies[i].y -= game.enemies[i].dy;
 			game.enemies[i].img = new Image();
 			game.enemies[i].img.src = 'img/balloon.gif';
-			game.enemies[i].img.onload = function() { console.log("Ballon img loaded"); };
+			// game.enemies[i].img.onload = function() { console.log("Ballon img loaded"); };
 			
 			// GIF IMAGE BALLOON
 			// getting the image centered
