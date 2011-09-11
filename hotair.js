@@ -69,7 +69,8 @@ HA.dom = {
 	i: $('#i'),
 	
 	updateScore: function(n) {
-		this.sb.html("Score: "+n);
+		// this.sb.html("Score: "+n);
+		this.sb.html("<h4>Score: "+n+"</h4>");
 	},
 	
 	showTweet: function(tweet, x, y) {
@@ -477,10 +478,8 @@ HA.g.draw = function(c, game) {
 					console.log('hit!');
 					if(game.enemies[i].team == game.player.team) {
 						game.player.score--;
-						HA.dom.updateScore(game.player.score);
 					} else {
 						game.player.score++;
-						HA.dom.updateScore(game.player.score);
 					}
 					hit = true;
 					game.bullets.splice(j, 1);
@@ -492,7 +491,7 @@ HA.g.draw = function(c, game) {
 		}
 		
 		// update score
-		game.sb.html("<h4>score: "+game.score+"</h4>");
+		HA.dom.updateScore(game.player.score);
 	
 	} else { // loading
 		
