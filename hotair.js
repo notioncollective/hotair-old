@@ -265,6 +265,8 @@ HA.g = {
 			var initX = ((Math.random()-Math.random())*HA.g.canvas.width()/3)+HA.g.canvas.width()/2;
 			var initY = HA.g.canvas.height()+20;
 			var newEnemyId = HA.g.enemies.length;
+			var img = new Image();
+			img.src = 'img/balloon.gif';
 			HA.g.enemies[newEnemyId] = {
 				tweet: o,
 				color: newColor,
@@ -273,6 +275,7 @@ HA.g = {
 				r: 50,
 				dy: HA.g.l,
 				team: o.type,
+				img: img
 			};
 		}
 	},
@@ -350,7 +353,7 @@ HA.g = {
  */
 HA.gfx = {
 	// this is the amount to scale gif images
-	gifScale: 8,
+	gifScale: 2,
 	drawCircle: function(context, x, y, radius, color) {
 	  context.fillStyle = color;
 	  context.beginPath();
@@ -432,22 +435,20 @@ HA.g.draw = function(c, game) {
 		for(i=0;i<game.enemies.length; i++) {
 			//console.log(game.enemies[i]);
 			game.enemies[i].y -= game.enemies[i].dy;
-			game.enemies[i].img = new Image();
-			game.enemies[i].img.src = 'img/balloon.gif';
+						
 			// game.enemies[i].img.onload = function() { console.log("Ballon img loaded"); };
 			
-			// GIF IMAGE BALLOON
 			// getting the image centered
 			var imgw, imgh, imgx, imgy;
 			// var imgw, imgh, imgx, imgy, imgscale;
 			// imgscale = 8;
-			imgw = 20*HA.gfx.gifScale;
-			imgh =	26*HA.gfx.gifScale;
+			imgw = 16*HA.gfx.gifScale;
+			imgh =	24*HA.gfx.gifScale;
 			imgx = game.enemies[i].x - (imgw / 2);
 			imgy = game.enemies[i].y - (imgh / 2);
 			
 			c.drawImage(game.enemies[i].img, imgx, imgy, imgw, imgh);
-			
+						
 			 // HA.gfx.drawCircle(c, game.enemies[i].x, game.enemies[i].y, game.nemies[i].r, game.enemies[i].color);
 			if(game.enemies[i].selected) {
 				HA.gfx.drawScope(c, game.enemies[i].x, game.enemies[i].y, imgw+10, imgh+10, "rgba(220, 230, 220, 0.5)");
