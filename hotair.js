@@ -13,25 +13,33 @@ HA.t = {
 	user: 'tweetcongress',
 	r_list: 'republican',
 	d_list: 'democrats',
-	count: 10,
 	page: 0,
 	r: [],
 	d: [],
+	all: [],
 	get_page: function(page) {
 		if(this.callback == null) {
 			console.log("ERROR: You need to set the callback function");
 			return;
 		}
 		// reset result sets
-		r = []; d = [];
+		this.r = []; this.d = [];
 		// get republicans
-		this.q(this.user, this.r_list, this.count, page, {type:'r'}, this.page_return);
+		console.log("COUNT: "+HA.g.levels[page].nt);
+		this.q(this.user, this.r_list, HA.g.levels[page].nt, page, {type:'r'}, this.page_return);
 		// get dems
-		this.q(this.user, this.d_list, this.count, page, {type:'d'}, this.page_return);
+		this.q(this.user, this.d_list, HA.g.levels[page].nt, page, {type:'d'}, this.page_return);
 	},
 	page_return: function(response, options, self) {
+		$.each(response, function(i, val) {
+			val.type = options.type;
+		});
 		self[options.type] = response;
 		if(self.d.length > 0 && self.r.length > 0) {
+			// merge the two arrays
+			self.all = self.shuffle(self.d.concat(self.r));
+			self.callback(self.all);
+			return;
 			// this callback needs to be set manually
 			// also, explicitly using 't' because of
 			// closure weirdness
@@ -40,6 +48,15 @@ HA.t = {
 				'democrats':self.d
 			});
 		}
+	},
+	shuffle: function(sourceArray) {
+	    for (var n = 0; n < sourceArray.length - 1; n++) {
+	        var k = n + Math.floor(Math.random() * (sourceArray.length - n));
+	        var temp = sourceArray[k];
+	        sourceArray[k] = sourceArray[n];
+	        sourceArray[n] = temp;
+	    }
+		return sourceArray;
 	},
 
 	/**
@@ -55,7 +72,7 @@ HA.t = {
 	
 	q: function(u,l,c,p,o,cb) {
 			var self = this;
-			var uri='https://api.twitter.com/1/lists/statuses.json?owner_screen_name='+u+'&slug='+l+'&count='+c+'&page='+p+'&callback=?';
+			var uri='https://api.twitter.com/1/lists/statuses.json?owner_screen_name='+u+'&slug='+l+'&per_page='+c+'&page='+p+'&callback=?';
 			$.getJSON(uri, function(r){cb(r,o,self);});
 	},
 }
@@ -67,9 +84,11 @@ HA.dom = {
 	ss: $('#h'),
 	sb: $('#sb'),
 	i: $('#i'),
+	ld: $("#l"), 	// container for level flash
+	h: $("#h"), 	// container for home screen
+	t: $("#t"), 	// container for tweet
 	
 	updateScore: function(n) {
-		// this.sb.html("Score: "+n);
 		this.sb.html("<h4>Score: "+n+"</h4>");
 	},
 	
@@ -86,16 +105,12 @@ HA.g = {
 	l: 1, // level
 	level_loaded: false,
 	state: 1, // 1=home screen, 2=play
-	data: {  // holds twitter data
-		'republicans':[],
-		'democrats':[]
-	},
+	data: [],  // holds twitter data
 	gWidth: window.innerWidth,
 	gHeight: window.innerHeight,
-	score: 0,
+	sInc: 100,
 	add_interval: 200,
-	d_index: 0,
-	r_index: 0,
+	t_index: 0,
 	canvas: null,
 
 	// timing, etc.
@@ -115,16 +130,27 @@ HA.g = {
 	bullets: [],
 	bulletSize: 3,
 	
+	// level parameters
+	levels: {
+		1: {
+			dy: 2, // speed
+			nt: 2 // number of tweets per party in this level	
+		},
+		2: {
+			dy: 4,
+			nt: 2
+		},
+		3: {
+			dy: 6,
+			nt: 2
+		}
+	},
+	
 	init: function() {
 		console.log("init");
-		this.getLevel(1);
+		this.getLevel(this.l);
 		this.canvas = $('#hotair'); // container for game animation
 		this.canvas[0].mozImageSmoothingEnabled=false; // turn off anti-aliasing in ff
-		this.i = $("#i"); // container for instructions
-		this.h = $("#h"); // container for home screen
-		this.ld = $("#l"); // container for level flash
-		this.t = $("#t"); // container for tweet
-		this.sb = $("#sb"); // container for score
 		
 		// deal with full-size resizing
 		var c = this.canvas[0].getContext('2d');
@@ -133,7 +159,7 @@ HA.g = {
 		
 		// game start options
 		$("#ibtn").click(function(e) {
-			HA.g.i.slideToggle();
+			HA.dom.i.slideToggle();
 			return false;
 		});
 		$("#cR").click(function(e) {
@@ -145,26 +171,7 @@ HA.g = {
 			HA.g.startGame();
 		});
 	},
-	// setState: function(s) {
-	// 		this.state = s;
-	// 		switch(s)
-	// 		{
-	// 		case 1:
-	// 			this.h.fadeIn();
-	// 			this.stop();
-	// 			console.log("home screen");
-	// 			break;
-	// 		case 2:
-	// 			this.h.fadeOut();
-	// 			this.i.fadeOut();
-	// 			HA.dom.sb.fadeIn();
-	// 			this.startGame();
-	// 			console.log("start game");
-	// 			break;
-	// 		default:
-	// 		
-	// 		}
-	// 	},
+	
 	startGame: function() {
 		
 		// handle mouse location
@@ -187,21 +194,27 @@ HA.g = {
 					break;
 			}
 		});
+		this.startLevel();
+	},
+	
+	startLevel: function() {
+		// reset things
+		this.t_index = 0;
 		
 		// set animation
 		this.addEnemy();
 		if(this.canvas[0].getContext) {
 			this.play();
 			this.flashLevel();
-			this.h.fadeOut();
-			this.i.slideUp();
+			HA.dom.h.fadeOut();
+			HA.dom.i.slideUp();
 			HA.dom.sb.fadeIn();
 		}
 	},
 	
 	// flash the level at the beginning of the game
 	flashLevel: function() {
-		HA.g.ld.text("Level "+HA.g.l).fadeIn(1000).delay(800).fadeOut(1000);
+		HA.dom.ld.text("Level "+HA.g.l).fadeIn(1000).delay(800).fadeOut(1000);
 	},
 	
 	// draw method, overwritten below
@@ -244,10 +257,10 @@ HA.g = {
 			HA.g.enemies[i].selected = false;
 		}
 		if(closestD < 200) {
-			HA.g.t.text(closestE.tweet.tweet.text);
+			HA.dom.t.text(closestE.tweet.tweet.text);
 			closestE.selected = true;
 		} else {
-			HA.g.t.text("");
+			HA.dom.t.text("");
 		}
 	},
 
@@ -281,48 +294,23 @@ HA.g = {
 	},
 	
 	getNextTweet: function() {
-		// if there are more left
-		if(this.d_index < this.data.democrats.length-1 && this.r_index < this.data.republicans.length-1) {
-			var tweet = {};
-			var type = null;
-			// check if dems are done
-			if(this.d_index == this.data.democrats.length-1) {
-				console.log("no more dems");
-				this.r_index++;
-				type = 'r';
-				tweet = this.data.republicans[this.r_index];
-			// check if repubs are done
-			} else if (this.r_index == this.data['republicans'].length-1) {
-				console.log("no more repubs");
-				this.d_index++;
-				type = 'd';
-				tweet = this.data.democrats[this.d_index];			
-			// otherwise, randomize	
-			} else if (Math.random()<.5) {
-				console.log("heads, republican!")
-				this.r_index++;
-				type = 'r';
-				tweet = this.data.republicans[this.r_index];
-			} else {
-				console.log("tails, democrat!")
-				this.d_index++;
-				type = 'd';
-				tweet = this.data.democrats[this.d_index];
-			}
-			console.log(type);
+		console.log("GET NEXT TWEET");
+		
+		if(this.t_index < this.data.length) {
+			this.t_index++;
 			return {
-				'tweet':tweet,
-				'type':type
+				'tweet': this.data[this.t_index],
+				'type': this.data[this.t_index].type
 			}
-		} else {
-			return false;
 		}
+		return false;
 	},
 
 	getLevel: function(l) {
 		this.level_loaded = false;
 		HA.t.get_page(l);
 	},
+	
 	levelLoadedCallback: function(data) {
 		var self = HA.g;
 		HA.g.level_loaded = true;
@@ -427,6 +415,21 @@ HA.g.draw = function(c, game) {
 	}
 	HA.gfx.drawSquare(c, playerX, playerY, game.player.width, game.player.height, game.player.color);
 	
+	
+	// check for level end - perhaps there is a better place/way to do this?
+	if(game.t_index >= game.data.length && game.enemies.length == 0) {
+		game.level_loaded = false;
+		game.l++;
+		if(game.levels[l] != undefined) {
+			game.pause();
+			game.getLevel(l);
+		} else {
+			alert('Game Over.');
+			game.stop();
+		}
+	}
+	
+	
 	// check if level data is loaded	
 	if(game.level_loaded) {
 		
@@ -434,7 +437,12 @@ HA.g.draw = function(c, game) {
 		// Enemy animation
 		for(i=0;i<game.enemies.length; i++) {
 			//console.log(game.enemies[i]);
-			game.enemies[i].y -= game.enemies[i].dy;
+			if(game.enemies[i].y < -50) {
+				game.enemies.splice(i, 1);
+				continue;
+			}
+			
+			game.enemies[i].y -= game.levels[game.l].dy;
 						
 			// game.enemies[i].img.onload = function() { console.log("Ballon img loaded"); };
 			
@@ -478,9 +486,9 @@ HA.g.draw = function(c, game) {
 				if(dist < (game.enemies[i].img.width*HA.gfx.gifScale)/2 && game.enemies[i].y < game.gHeight) {
 					console.log('hit!');
 					if(game.enemies[i].team == game.player.team) {
-						game.player.score--;
+						game.player.score-=game.sInc;
 					} else {
-						game.player.score++;
+						game.player.score+=game.sInc;
 					}
 					hit = true;
 					game.bullets.splice(j, 1);
