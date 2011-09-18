@@ -148,7 +148,6 @@ HA.g = {
 	
 	init: function() {
 		console.log("init");
-		this.getLevel(this.l);
 		this.canvas = $('#hotair'); // container for game animation
 		this.canvas[0].mozImageSmoothingEnabled=false; // turn off anti-aliasing in ff
 		
@@ -194,7 +193,7 @@ HA.g = {
 					break;
 			}
 		});
-		this.startLevel();
+		this.getLevel(this.l);
 	},
 	
 	startLevel: function() {
@@ -214,7 +213,12 @@ HA.g = {
 	
 	// flash the level at the beginning of the game
 	flashLevel: function() {
-		HA.dom.ld.text("Level "+HA.g.l).fadeIn(1000).delay(800).fadeOut(1000);
+		var text = "Level "+HA.g.l;
+		HA.g.flashMessage(text);
+	},
+	
+	flashMessage: function(message) {
+		HA.dom.ld.text(message).fadeIn(1000).delay(800).fadeOut(1000);
 	},
 	
 	// draw method, overwritten below
@@ -315,6 +319,7 @@ HA.g = {
 		var self = HA.g;
 		HA.g.level_loaded = true;
 		HA.g.data = data;
+		self.startLevel();
 	},
 	// stop game
 	stop: function() {
@@ -419,20 +424,11 @@ HA.g.draw = function(c, game) {
 	// check for level end - perhaps there is a better place/way to do this?
 	if(game.t_index >= game.data.length && game.enemies.length == 0) {
 		game.level_loaded = false;
-		game.l++;
-		if(game.levels[l] != undefined) {
-			game.pause();
-			game.getLevel(l);
-		} else {
-			alert('Game Over.');
-			game.stop();
-		}
 	}
 	
 	
 	// check if level data is loaded	
 	if(game.level_loaded) {
-		
 		// Enemies loaded via separate timed loop
 		// Enemy animation
 		for(i=0;i<game.enemies.length; i++) {
@@ -503,7 +499,15 @@ HA.g.draw = function(c, game) {
 		HA.dom.updateScore(game.player.score);
 	
 	} else { // loading
+		game.l+=1;
 		
+		if(game.levels[game.l] != undefined) {
+			game.pause();
+			game.getLevel(game.l);
+		} else {
+			game.flashMessage('Game Over');
+			game.stop();
+		}
 	}
 
 }
